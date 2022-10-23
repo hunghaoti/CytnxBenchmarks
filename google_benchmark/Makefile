@@ -1,8 +1,7 @@
 #install root
-CYTNX_ROOT=/home/hunghaoti/install/CYTNX077_dev
-ITENSOR_ROOT:=/home/hunghaoti/install/itensor
-
-CC := g++
+CYTNX_ROOT=$(HOME)/libraries/Cytnx-dev
+ITENSOR_ROOT:=$(HOME)/install_src/itensor
+BENCHMARK_ROOT:=$(HOME)/install_src/benchmark
 
 #cytnx flags
 CYTNX_INC := $(shell python -c "exec(\"import sys\nsys.path.append(\'$(CYTNX_ROOT)\')\nimport cytnx\nprint(cytnx.__cpp_include__)\")")
@@ -11,13 +10,16 @@ CYTNX_LIB := $(shell python -c "exec(\"import sys\nsys.path.append(\'$(CYTNX_ROO
 CYTNX_CXXFLAGS := $(shell python -c "exec(\"import sys\nsys.path.append(\'$(CYTNX_ROOT)\')\nimport cytnx\nprint(cytnx.__cpp_flags__)\")")
 
 #itensor flags
-ITENSOR_CXXFLAGS:=-std=c++17
-ITENSOR_HEADER:=$(ITENSOR_ROOT)
-ITENSOR_LIBDIR:=$(ITENSOR_ROOT)/lib
+include $(ITENSOR_ROOT)/this_dir.mk
+include $(ITENSOR_ROOT)/options.mk
+
+#google benchmark
+BENCHMARK_HEADER:=$(BENCHMARK_ROOT)/include
+BENCHMARK_LIBDIR:=$(BENCHMARK_ROOT)/build/src
 
 TARGETS:=basic_test.e
 $(TARGETS): %.e:%.cpp
-	$(CC) $(ITENSOR_CXXFLAGS) $(CYTNX_CXXFLAGS) -I$(ITENSOR_HEADER) -I${CYTNX_INC}  $< -L$(ITENSOR_LIBDIR) ${CYTNX_LIB} ${CYTNX_LINK} -litensor -pthread -lbenchmark -lopenblas -o $@
+	$(CCCOM) $(CYTNX_CXXFLAGS) $(CCFLAGS) -I$(CYTNX_INC) $(ITENSOR_LIBS) $(ITENSOR_INCLUDEFLAGS) -I$(BENCHMARK_HEADER) $< -L$(ITENSOR_LIBDIR) $(ITENSOR_LIBFLAGS) $(CYTNX_LIB) -L$(BENCHMARK_LIBDIR) -lbenchmark -lrt -o $@
 
 #clean
 .phony: clean
